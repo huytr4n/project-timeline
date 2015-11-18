@@ -1,10 +1,22 @@
-http      = require('http')
-express   = require('express')
-path      = require('path')
-favicon   = require('serve-favicon')
-fs        = require('fs')
-yaml      = require('js-yaml')
-basicAuth = require('basic-auth-connect')
+http                = require('http')
+express             = require('express')
+bodyParser          = require('body-parser')
+path                = require('path')
+favicon             = require('serve-favicon')
+fs                  = require('fs')
+yaml                = require('js-yaml')
+basicAuth           = require('basic-auth-connect')
+mongodb             = require('mongodb')
+MongoClient         = mongodb.MongoClient
+ObjectID            = mongodb.ObjectID
+connectionString    = 'mongodb://localhost:27017/timeline'
+dbEvent             = null
+
+# Connet to mongodb
+connectToMongo = MongoClient.connect connectionString, (err, db) ->
+  if (!err)
+    console.log('connected to', connectionString)
+    dbEvent = db.collection('events')
 
 # Function to load files from our data folder
 getDataFile = (file) ->
@@ -34,24 +46,65 @@ app.engine('.html', require('hbs').__express)
 app.use(favicon(faviconPath))
 app.use('/assets', express.static(generatedPath))
 app.use('/vendor', express.static(vendorPath))
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded())
 
 # Port configuration
 port = process.env.PORT || 3002
-webserver.listen(port)
+app.listen port, (err) ->
+  console.log('server is up at port', port)
 
 # Routes
 app.get '/', (req, res) ->
-  items  = getDataFile('items.yaml')
-  # Sort updates by date
-  items.updates = items.updates.sort (a, b) ->
-    aStr = a.date.toLowerCase()
-    bStr = b.date.toLowerCase()
-    if (aStr < bStr)
-      return 1
-    else if (bStr < aStr)
-      return -1
-    else
-      return 0
-  res.render(generatedPath + '/index.html', {data: items})
+  dbEvent.find().toArray (err, events) ->
+    res.render(generatedPath + '/index.html', {data: {updates: events}})
 
-module.exports = webserver
+# add
+app.get '/add', (req, res) ->
+  res.render(generatedPath + '/add.html')
+
+# add api
+app.post '/events', (req, res) ->
+  data = req.body
+
+  dbEvent.insert data, (err, event) ->
+    res.send(event)
+
+# delete api
+app.get '/events/remove/:id', (req, res) ->
+  dbEvent.remove {_id: ObjectID(req.params.id)}, (err, result) ->
+    res.send(result)
+
+
+module.exports = app
+
+##############################################################################
+########################## Sample Records ####################################
+"updates": [
+    {
+        "date": "July 15, 2014",
+        "title": "Visited Google Website",
+        "item": [
+            {
+                "title": "View google.com",
+                "url": "http://google.com"
+            }
+        ]
+    },
+    {
+        "date": "July 14, 2014",
+        "title": "High-fived a friend!",
+        "item": [
+            {
+                "title": "View the high-five!",
+                "url": "https://s3.amazonaws.com/giphymedia/media/WKdPOVCG5LPaM/giphy.gif"
+            },
+            {
+                "title": "View the celebration",
+                "url": "http://media.giphy.com/media/aTUAoYk7Tj87S/giphy.gif"
+            }
+        ]
+    }
+]
+##############################################################################
+##############################################################################
