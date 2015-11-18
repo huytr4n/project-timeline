@@ -1,5 +1,7 @@
 http                = require('http')
 express             = require('express')
+_                   = require('underscore')
+moment              = require('moment')
 bodyParser          = require('body-parser')
 path                = require('path')
 favicon             = require('serve-favicon')
@@ -9,7 +11,7 @@ basicAuth           = require('basic-auth-connect')
 mongodb             = require('mongodb')
 MongoClient         = mongodb.MongoClient
 ObjectID            = mongodb.ObjectID
-connectionString    = 'mongodb://localhost:27017/timeline'
+connectionString    = 'mongodb://45.55.210.246:27017/timeline'
 dbEvent             = null
 
 # Connet to mongodb
@@ -57,6 +59,13 @@ app.listen port, (err) ->
 # Routes
 app.get '/', (req, res) ->
   dbEvent.find().toArray (err, events) ->
+    # sort events
+    events = _.sortBy events, (event) ->
+      return moment(event.date, 'MMM dd, YYYY')
+
+    # reverse
+    events.reverse()
+
     res.render(generatedPath + '/index.html', {data: {updates: events}})
 
 # add
