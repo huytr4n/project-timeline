@@ -11,7 +11,7 @@ basicAuth           = require('basic-auth-connect')
 mongodb             = require('mongodb')
 MongoClient         = mongodb.MongoClient
 ObjectID            = mongodb.ObjectID
-connectionString    = 'mongodb://45.55.210.246:27017/timeline'
+connectionString    = 'mongodb://127.0.0.1:27017/timeline'
 dbEvent             = null
 
 # Connet to mongodb
