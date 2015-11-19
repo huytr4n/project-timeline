@@ -23,7 +23,7 @@
     <div class="small-12 columns">
       <ul class="updates">
       {{#each data.updates}}
-        <li>
+        <li class="event" data-id="{{this._id}}">
           <date> {{{date}}} </date>
           <h3> {{{title}}} </h3>
           {{#each this.item}}
@@ -40,5 +40,15 @@
 
   <script src="/vendor/jquery/dist/jquery.min.js"></script>
   <script src="/assets/js/app.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $('.event').click(function () {
+        var id = $(this).attr('data-id');
+
+        window.location.href = '/edit/' + id;
+      });
+    });
+  </script>
 </body>
 </html>

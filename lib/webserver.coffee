@@ -72,6 +72,23 @@ app.get '/', (req, res) ->
 app.get '/add', (req, res) ->
   res.render(generatedPath + '/add.html')
 
+# edit
+app.get '/edit/:id', (req, res) ->
+  id = req.params.id
+
+  # get event by id
+  dbEvent.findOne {_id: new ObjectID(id)}, (err, event) ->
+    res.render(generatedPath + '/edit.html', {event: event})
+
+# update api
+app.put '/events/:id', (req, res) ->
+  id = req.params.id
+  data = req.body
+
+  # update event by id
+  dbEvent.update {_id: new ObjectID(id)}, {$set: data}, (err, event) ->
+    res.send(event)
+
 # add api
 app.post '/events', (req, res) ->
   data = req.body
@@ -81,7 +98,7 @@ app.post '/events', (req, res) ->
 
 # delete api
 app.get '/events/remove/:id', (req, res) ->
-  dbEvent.remove {_id: ObjectID(req.params.id)}, (err, result) ->
+  dbEvent.remove {_id: new ObjectID(req.params.id)}, (err, result) ->
     res.send(result)
 
 
